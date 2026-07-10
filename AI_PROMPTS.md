@@ -364,6 +364,41 @@ All prompts used during development, what AI generated correctly, what was wrong
 
 ---
 
+## Prompt 11 — Redis Caching & Debugging
+
+**Tool used:** Claude (claude.ai)
+
+**Prompt:**
+
+> Add Redis caching to my FastAPI backend for dashboard and projects endpoints only. The backend uses SQLAlchemy, FastAPI, and is deployed on Railway. Rules: Never crash if Redis is down — always fall through to the DB query. Never import redis_client directly in routers. Do not add caching to employees or seats endpoints. Do not change any existing response shapes.
+
+> _(Follow-up after 500 Error)_: it's done... but after deploying and accessing projects i'm having internal server error 500. [Provided `projects.py`, `cache.py`, and the Redis DB output showing `"<models.Project object at 0x...>"`] let's fix this.
+
+**What AI generated correctly:**
+
+- Configured the Redis client to connect gracefully, setting a `REDIS_AVAILABLE` flag to prevent the app from crashing if the cache goes down.
+- Created a solid `@cache_response` decorator and `invalidate_pattern` function.
+- Placed cache invalidation correctly on mutation endpoints (`allocate_seat`, `release_seat`, `create_project`).
+- Updated the `/health` endpoint to accurately reflect the Redis connection status.
+- Correctly diagnosed the 500 Internal Server Error in the follow-up: the decorator was intercepting raw SQLAlchemy ORM objects _before_ FastAPI/Pydantic serialized them, causing `json.dumps` to store raw memory references instead of actual data.
+
+**What AI generated incorrectly:**
+
+- The initial implementation of the `@cache_response` decorator did not account for SQLAlchemy ORM objects. It assumed `json.dumps(default=str)` would be enough, which caused the route to cache memory pointers and crash on retrieval.
+
+**What I manually fixed:**
+
+- Replaced the cache logic with an updated version containing a custom `_serialize()` helper to properly parse ORM objects, Pydantic models, and dicts.
+- Refactored `GET /projects` to explicitly return a list of parsed dictionaries instead of raw `Project` ORM objects. This ensured the decorator received clean, JSON-serializable data before caching.
+
+**How I verified correctness:**
+
+- Checked the Redis database directly to confirm the `projects:all` key contained a valid JSON array of project data, rather than object string representations.
+- Hit the `GET /projects` endpoint twice via the browser/Swagger — verified the first call fetched from DB and the second call was a cache hit with drastically reduced response time.
+- Hit the `/health` endpoint and confirmed it returned `"cache": "connected"`.
+
+---
+
 ## Summary
 
 ### What AI Generated Correctly
