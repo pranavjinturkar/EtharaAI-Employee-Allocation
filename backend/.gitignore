@@ -1,0 +1,57 @@
+# ==========================================
+# FastAPI & Application Specific
+# ==========================================
+# Environment variables containing sensitive API keys/secrets
+.env
+.env.[a-zA-Z]*
+!.env.example
+
+# Local SQLite databases (common for development)
+*.sqlite
+*.sqlite3
+*.db
+
+# Application log files
+*.log
+log.txt
+
+# ==========================================
+# Python Cache and Compiled Files
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ==========================================
+# Virtual Environments
+# ==========================================
+.venv/
+venv/
+ENV/
+env/
+
+# ==========================================
+# Testing and Code Quality
+# ==========================================
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ==========================================
+# IDEs and Editors
+# ==========================================
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# PyCharm / JetBrains
+.idea/
+
+# General
+.DS_Store
+Thumbs.db
