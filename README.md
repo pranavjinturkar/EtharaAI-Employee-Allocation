@@ -11,7 +11,7 @@ A full-stack application that manages seat allocation for 5,000+ employees acros
 | **Frontend**                    | https://employee-allocation-fe.vercel.app/                    |
 | **Backend API**                 | https://employee-allocation-be-production.up.railway.app/     |
 | **API Documentation (Swagger)** | https://employee-allocation-be-production.up.railway.app/docs |
-| **GitHub Repository**           | `YOUR_GITHUB_REPO_URL_HERE`                                   |
+| **GitHub Repository**           | `https://github.com/pranavjinturkar/EtharaAI-Employee-Allocation`                                   |
 
 ---
 
