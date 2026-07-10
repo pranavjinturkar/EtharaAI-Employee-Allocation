@@ -4,10 +4,12 @@ from sqlalchemy import func, case
 
 from database import get_db
 from models import Employee, EmployeeStatus, Seat, SeatStatus, Project, SeatAllocation, AllocationStatus
+from cache import cache_response
 
 router = APIRouter()
 
 @router.get("/summary")
+@cache_response("dashboard:summary", ttl=30)
 def get_summary(db: Session = Depends(get_db)):
     total_employees = db.query(func.count(Employee.id)).scalar()
     total_seats = db.query(func.count(Seat.id)).scalar()
@@ -30,6 +32,7 @@ def get_summary(db: Session = Depends(get_db)):
     }
 
 @router.get("/project-utilization")
+@cache_response("dashboard:project-utilization", ttl=30)
 def get_project_utilization(db: Session = Depends(get_db)):
     results = db.query(
         Project.name,
@@ -49,6 +52,7 @@ def get_project_utilization(db: Session = Depends(get_db)):
     ]
 
 @router.get("/floor-utilization")
+@cache_response("dashboard:floor-utilization", ttl=30)
 def get_floor_utilization(db: Session = Depends(get_db)):
     results = db.query(
         Seat.floor,

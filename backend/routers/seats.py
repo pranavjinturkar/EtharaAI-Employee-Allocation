@@ -7,6 +7,7 @@ from database import get_db
 from models import Seat, SeatStatus, SeatAllocation, AllocationStatus, Employee, EmployeeStatus
 import schemas
 from services.allocation_engine import suggest_seat
+from cache import invalidate_pattern
 router = APIRouter()
 @router.post("/", response_model=schemas.SeatOut)
 def create_seat(seat: schemas.SeatCreate, db: Session = Depends(get_db)):
@@ -155,6 +156,7 @@ def allocate_seat(req: schemas.AllocateRequest, db: Session = Depends(get_db)):
     employee.status = EmployeeStatus.ACTIVE
     
     db.commit()
+    invalidate_pattern("dashboard:*")
     return {"detail": "Seat allocated successfully", "seat_id": seat_to_allocate.id}
 @router.post("/release")
 def release_seat(req: schemas.ReleaseRequest, db: Session = Depends(get_db)):
@@ -174,6 +176,7 @@ def release_seat(req: schemas.ReleaseRequest, db: Session = Depends(get_db)):
         seat.status = SeatStatus.AVAILABLE
         
     db.commit()
+    invalidate_pattern("dashboard:*")
     return {"detail": "Seat released successfully"}
 
 @router.patch("/{seat_id}/status")

@@ -7,3 +7,4 @@ pydantic
 python-dotenv
 faker
 anthropic
+redis[hiredis]

@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import employees, projects, seats, dashboard, ai
+from cache import redis_client, REDIS_AVAILABLE
+import os
 
 app = FastAPI(title="Ethara Seat Allocation API", version="1.0.0")
 
@@ -23,4 +25,14 @@ app.include_router(ai.router, prefix="/ai", tags=["AI Assistant"])
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    cache_status = "connected" if REDIS_AVAILABLE else "unavailable"
+    if REDIS_AVAILABLE and redis_client:
+        try:
+            redis_client.ping()
+        except Exception:
+            cache_status = "error"
+    return {
+        "status": "ok",
+        "cache": cache_status,
+        "cache_url": "configured" if os.getenv("REDIS_URL") else "not configured"
+    }

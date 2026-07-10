@@ -6,6 +6,7 @@ from database import get_db
 from models import Project, ProjectStatus, Employee, EmployeeStatus
 import schemas
 from routers.employees import _build_employee_out
+from cache import cache_response, invalidate_pattern
 
 router = APIRouter()
 
@@ -19,11 +20,26 @@ def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)
     db.add(db_proj)
     db.commit()
     db.refresh(db_proj)
+    invalidate_pattern("projects:*")
+    invalidate_pattern("dashboard:*")
     return db_proj
 
 @router.get("/", response_model=List[schemas.ProjectOut])
+@cache_response("projects:all", ttl=300)
 def get_projects(db: Session = Depends(get_db)):
-    return db.query(Project).filter(Project.status == ProjectStatus.ACTIVE).all()
+    projects = db.query(Project).filter(Project.status == ProjectStatus.ACTIVE).all()
+    # Return as list of dicts — cacheable, and Pydantic response_model handles validation
+    return [
+        {
+            "id": p.id,
+            "name": p.name,
+            "description": p.description,
+            "manager_name": p.manager_name,
+            "status": p.status.value if hasattr(p.status, 'value') else p.status,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+        }
+        for p in projects
+    ]
 
 @router.get("/{id}/employees", response_model=List[schemas.EmployeeOut])
 def get_project_employees(id: int, db: Session = Depends(get_db)):
